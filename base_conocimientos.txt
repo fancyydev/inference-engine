@@ -1,0 +1,6 @@
+a,b:c
+a:d
+c,d:e
+b,e,f:g
+a,e:h
+d,e,h:i
