@@ -114,9 +114,11 @@ def forward_chaining(meta, hechos_iniciales):
     if meta in bh:
         print(bh)
         print("Exito")
+        return True
     else:
         print(bh)
         print("Fracaso")
+        return False
         
 def backward_chaining(meta, bh):
     global cc_list
@@ -185,28 +187,66 @@ def backward_chaining(meta, bh):
 #     print("Exito hacia atras")
 # else:
 #     print("Fracaso hacia atras")
-def button_forward():
+def actualizar_posicion_label(exito):
+    if exito:
+        # Coordenadas para el éxito
+        msgBoolean.set("EXITO")
+        msg_exito.config(bg='Green')
+        x, y = 430, 167
+    else:
+        # Coordenadas para el fracaso
+        msgBoolean.set("FRACASO")
+        msg_exito.config(bg='OrangeRed1')
+        x, y = 390, 167
+    msg_exito.place(x=x, y=y)
+
+# Función para actualizar el Treeview con los valores de las listas globales
+def update_treeview():
     global cc_list
     global n_list
     global meta_list
     global bh_list
     global r_list
+    lens = []
+    lens.append(len(cc_list))
+    lens.append(len(n_list))
+    lens.append(len(meta_list))
+    lens.append(len(bh_list))
+    lens.append(len(r_list))
+    lens.sort(reverse=True)
+    max_range = lens[0]
+
+    cc_list = prepare_lists(cc_list)
+    r_list = prepare_lists(r_list,"r")
+    
+    print(cc_list)
+    print(n_list)
+    print(meta_list)
+    print(r_list)
+    print(bh_list)
+    # Limpiar el Treeview antes de agregar nuevos elementos
+    for item in tv.get_children():
+        tv.delete(item)
+    
+    # Insertar valores de las listas globales en el Treeview
+    for i in range(max_range):
+        cc = cc_list[i] if i < len(cc_list) else ""
+        n = n_list[i] if i < len(n_list) else ""
+        meta = meta_list[i] if i < len(meta_list) else ""
+        r = r_list[i] if i < len(r_list) else ""
+        bh = bh_list[i] if i < len(bh_list) else ""
+        
+        tv.insert("", END, values=(cc, n, meta, r, bh))
+
+def button_forward():
+    global meta_list
+    global bh_list
     meta = meta_entry.get()
     base_hechos = bh_entry.get()
     bh_list = [base_hechos]
-    
     meta_list.append(meta)    
-    forward_chaining(meta,base_hechos)
-
-    print(bh_list)
-    print(n_list)
-
-    cc_list = prepare_lists(cc_list)
-    print(cc_list)
-    r_list = prepare_lists(r_list,"r")
-    print(r_list)
-    print(meta_list)
-
+    actualizar_posicion_label(forward_chaining(meta,base_hechos))
+    update_treeview()
     reset_lists()
     
 def button_backward():
@@ -220,18 +260,19 @@ def button_backward():
     bh_list = [base_hechos]
     meta_list.append(meta)
     if backward_chaining(meta, base_hechos):
-        bh_aux = bh_list[len(bh_list)-1] + 'h'
-        bh_list.append(bh_aux)
-        print(bh_list)
-        print(n_list)
+        bh_aux = bh_list[len(bh_list)-1] + meta
+        bh_list.append(bh_aux) 
         cc_list = prepare_lists(cc_list)
-        print(cc_list)
         r_list = prepare_lists(r_list,"r")
-        print(r_list)
-        print(meta_list)
+    
+        #Insertar en la tabla
         print("Exito hacia atras")
     else:
         print("Fracaso hacia atras")
+     
+    reset_lists()
+    
+    
 
 #INTERFAZ------------------------------------------------------------------------------
 def validate_input(action, value_if_allowed, text, value_before, text_after, flag):
@@ -239,8 +280,6 @@ def validate_input(action, value_if_allowed, text, value_before, text_after, fla
     if action == '1':  # Si se intenta escribir (insertar texto)
         return len(value_if_allowed) == 1 and text.isalpha()
     return True
-
-
 
 root = Tk()
 root.geometry("1000x650")
@@ -273,20 +312,30 @@ bh_entry.place(x=720, y=100, width=130, height=34)
 Button(root, text = "FORWARD" , font = ('Derive Unicode', 25), command=lambda:button_forward()).place(x = 150, y = 160)
 Button(root, text = 'BACKWARD', font=('Derive Unicode', 25), command=lambda:button_backward()).place(x = 625 , y = 160)
 
-# Crear el Treeview
-tv = ttk.Treeview(root, columns=("n", "meta", "r", "bh"))
+msgBoolean = StringVar()
+# x = 430, y = 167 Exito x = 390, y = 167 Fracaso
+msg_exito = Label(root, textvariable=msgBoolean, font = ('Derive Unicode', 30))
+#msg_fracaso = Label(root, textvariable=msgBoolean, font = ('Derive Unicode', 30), bg ='white smoke').place(x=430, y=167)
 
-tv.column("#0", width=180)
+
+tv = ttk.Treeview(root, columns=("cc", "n", "meta", "r", "bh"))
+
+tv.column("#0", width=0, stretch=NO)  # Ocultar columna #0
+tv.column("cc", width=180)
 tv.column("n", width=180)
 tv.column("meta", width=180)
 tv.column("r", width=180)
 tv.column("bh", width=180)
 
-tv.heading("#0", text="CC", anchor=CENTER)
+tv.heading("#0", text="", anchor=CENTER)  # Encabezado vacío para la columna #0
+tv.heading("cc", text="CC", anchor=CENTER)
 tv.heading("n", text="N(H/M)", anchor=CENTER)
 tv.heading("meta", text="META", anchor=CENTER)
 tv.heading("r", text="R", anchor=CENTER)
 tv.heading("bh", text="BH", anchor=CENTER)
+
+# Empaquetar el Treeview
+tv.pack(pady=200)
 
 # Empaquetar el Treeview
 tv.pack(pady=200)
