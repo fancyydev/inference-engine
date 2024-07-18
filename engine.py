@@ -56,13 +56,20 @@ def get_bc():
     return bc
 
 #[['abc','d'],]
-def equiparar(bc=None, bh=None, meta = None, type = None):
+def equiparar(bc=None, bh=None, meta = None, type = None, padre = None):
     cc = []
+    ban = False
     if type == "back":
         for regla in bc:
             meta_regla = regla[1]
             if meta in meta_regla:
+                ban = False
+                if padre != None and padre in regla[0]:
+                    ban = True
                 cc.append(regla)
+        
+        if ban == True:
+            return -1
     else:
         for regla in bc:
             ban = True
@@ -84,7 +91,6 @@ def forward_chaining(meta, hechos_iniciales):
     global meta_list
     global bh_list
     global r_list
-    
     basic_knowledge = get_bc()
     bh = hechos_iniciales
     cc = equiparar(basic_knowledge,bh)
@@ -134,59 +140,40 @@ def backward_chaining(meta, bh):
     else:
         cc = equiparar(bc=basic_knowledge,meta=meta, type="back")
         while(len(cc)>0 and verificado == False):
-            r = cc[0]
-            r_list.append(r)
-            cc_list.append(cc.copy())
-            #Eliminamos de cc
-            cc.remove(r)
-            #Obtenemos los antecedentes
-            nm = list(r[0])
-            n_list.append(r[0])
-            
-            verificado = True
-            while len(nm)>0 and verificado:
-                meta = nm[0]
-                meta_list.append(meta)
-                nm.remove(meta)
-                verificado = backward_chaining(meta,bh)
-                if verificado:
-                    if (meta not in bh):
-                        bh += meta
-                        bh_aux = bh_list[len(bh_list)-1] + meta
-                        bh_list.append(bh_aux)
+            #Verificar que los antecedentes no dependan de la regla
+            if len(cc) > 0:
+                for i in cc[0][0]:
+                    if i not in bh:
+                        comp = equiparar(bc=basic_knowledge,meta=i, type="back", padre=meta)
+                        if comp == -1:
+                            basic_knowledge.remove(cc[0])
+                            cc.remove(cc[0])
+                            break
+            if len(cc)>0:
+                r = cc[0]
+                r_list.append(r)
+                cc_list.append(cc.copy())
+                #Eliminamos de cc
+                cc.remove(r)
+                #Obtenemos los antecedentes
+                nm = list(r[0])
+                n_list.append(r[0])
+                
+                verificado = True
+                while len(nm)>0 and verificado:
+                    meta = nm[0]
+                    meta_list.append(meta)
+                    nm.remove(meta)
+                    verificado = backward_chaining(meta,bh)
+                    if verificado:
+                        if (meta not in bh):
+                            bh += meta
+                            bh_aux = bh_list[len(bh_list)-1] + meta
+                            bh_list.append(bh_aux)
+            else:
+                print("Tu base de conocimiento genera recursividad")
         return verificado
-# #Forward ------------------------------------
-# bh_list = ['abf']
-# meta_list.append('h')    
-# forward_chaining('h','abf')
 
-# print(bh_list)
-# print(n_list)
-
-# cc_list = prepare_lists(cc_list)
-# print(cc_list)
-# r_list = prepare_lists(r_list,"r")
-# print(r_list)
-# print(meta_list)
-
-# reset_lists()
-# Backward--------------------------------------
-#print("-----------------------------")
-# bh_list = ['abf']
-# meta_list.append('h')
-# if backward_chaining('h', 'abf'):
-#     bh_aux = bh_list[len(bh_list)-1] + 'h'
-#     bh_list.append(bh_aux)
-#     print(bh_list)
-#     print(n_list)
-#     cc_list = prepare_lists(cc_list)
-#     print(cc_list)
-#     r_list = prepare_lists(r_list,"r")
-#     print(r_list)
-#     print(meta_list)
-#     print("Exito hacia atras")
-# else:
-#     print("Fracaso hacia atras")
 def actualizar_posicion_label(exito):
     if exito:
         # Coordenadas para el éxito
@@ -250,30 +237,20 @@ def button_forward():
     reset_lists()
     
 def button_backward():
-    global cc_list
-    global n_list
     global meta_list
     global bh_list
-    global r_list
     meta = meta_entry.get()
     base_hechos = bh_entry.get()
     bh_list = [base_hechos]
     meta_list.append(meta)
-    if backward_chaining(meta, base_hechos):
+    succes = backward_chaining(meta, base_hechos)
+    actualizar_posicion_label(succes)
+    if succes:
         bh_aux = bh_list[len(bh_list)-1] + meta
         bh_list.append(bh_aux) 
-        cc_list = prepare_lists(cc_list)
-        r_list = prepare_lists(r_list,"r")
-    
-        #Insertar en la tabla
-        print("Exito hacia atras")
-    else:
-        print("Fracaso hacia atras")
-     
+    update_treeview()
     reset_lists()
-    
-    
-
+     
 #INTERFAZ------------------------------------------------------------------------------
 def validate_input(action, value_if_allowed, text, value_before, text_after, flag):
     # Permitir solo una letra
