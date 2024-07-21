@@ -3,106 +3,106 @@ from tkinter import ttk
  
 cc_list = []
 n_list = []
-meta_list = []
+goal_list = []
 bh_list = []
 r_list = []
 
 def reset_lists():
     global cc_list
     global n_list
-    global meta_list
+    global goal_list
     global bh_list
     global r_list
     
     cc_list.clear()
     n_list.clear()
-    meta_list.clear()
+    goal_list.clear()
     bh_list.clear()
     r_list.clear()
     
 def prepare_lists(list, type = None):
     second = []
-    juntar = ""
+    combine = ""
     if type == "r":
         for i in list:  
-            antecedentes = i[0]
+            antecedents = i[0]
             conclusion = i[1]
-            juntar = antecedentes + "->" + conclusion
-            second.append(juntar)
+            combine = antecedents + "->" + conclusion
+            second.append(combine)
     else:
         for i in list:
             for j in i:
-                antecedentes = j[0]
+                antecedents = j[0]
                 conclusion = j[1]
-                juntar += antecedentes + "->" + conclusion + ","
-            second.append(juntar)
-            juntar = ""
+                combine += antecedents + "->" + conclusion + ","
+            second.append(combine)
+            combine = ""
     return second
 
 def get_bc():
     bc = []
     with open('base_conocimientos.txt', 'r') as archivo:
-        lineas = archivo.readlines()
-        for linea in lineas:
-            linea  = linea.strip() #Elimina los espacios en blanco
-            linea = linea.replace(",","")
-            partes = linea.split(":")
-            antecedentes = partes[0]
-            consecuente = partes[1]
-            bc_aux = [antecedentes,consecuente]
+        lines = archivo.readlines()
+        for line in lines:
+            line  = line.strip() #Elimina los espacios en blanco
+            line = line.replace(",","")
+            parts = line.split(":")
+            antecedents = parts[0]
+            consecuent = parts[1]
+            bc_aux = [antecedents,consecuent]
             bc.append(bc_aux)
-            #print(linea)
+            #print(line)
     #print(bc)
     return bc
 
 #[['abc','d'],]
-def equiparar(bc=None, bh=None, meta = None, type = None, padre = None):
+def compare(bc=None, bh=None, goal = None, type = None, padre = None):
     cc = []
     ban = False
     if type == "back":
-        for regla in bc:
-            meta_regla = regla[1]
-            if meta in meta_regla:
+        for rule in bc:
+            goal_rule = rule[1]
+            if goal in goal_rule:
                 ban = False
-                if padre != None and padre in regla[0]:
+                if padre != None and padre in rule[0]:
                     ban = True
-                cc.append(regla)
+                cc.append(rule)
         
         if ban == True:
             return -1
     else:
-        for regla in bc:
+        for rule in bc:
             ban = True
-            antecedentes = regla[0]
-            cant_antecedentes = len(antecedentes)
-            cont = 0
-            for hecho in bh:
-                if hecho in antecedentes:
-                    cont += 1    
-                if cont == cant_antecedentes:
-                    cc.append(regla)
+            antecedents = rule[0]
+            num_antecedents = len(antecedents)
+            count = 0
+            for fact in bh:
+                if fact in antecedents:
+                    count += 1    
+                if count == num_antecedents:
+                    cc.append(rule)
                     break
     return cc
     
 
-def forward_chaining(meta, hechos_iniciales):
+def forward_chaining(goal, initial_facts):
     global cc_list
     global n_list
-    global meta_list
+    global goal_list
     global bh_list
     global r_list
     basic_knowledge = get_bc()
-    bh = hechos_iniciales
-    cc = equiparar(basic_knowledge,bh)
+    bh = initial_facts
+    cc = compare(basic_knowledge,bh)
     print("------")
     print(cc)
     cc_list.append(cc.copy())
-    while len(cc)>0 and meta not in bh:
+    while len(cc)>0 and goal not in bh:
         r = cc[0]
         r_list.append(r)
         #Eliminamos de cc
         cc.remove(r)
-        #Eliminamos de basic knowledge para no seguir obteniendo esa regla
+        #Eliminamos de basic knowledge para no seguir obteniendo esa rule
         basic_knowledge.remove(r)
         
         nh = r[1]
@@ -113,11 +113,11 @@ def forward_chaining(meta, hechos_iniciales):
             bh += nh
             bh_list.append(bh)
         #
-        if meta not in bh:
-            cc = equiparar(basic_knowledge,bh)
+        if goal not in bh:
+            cc = compare(basic_knowledge,bh)
             cc_list.append(cc.copy())
         
-    if meta in bh:
+    if goal in bh:
         print(bh)
         print("Exito")
         return True
@@ -126,25 +126,25 @@ def forward_chaining(meta, hechos_iniciales):
         print("Fracaso")
         return False
         
-def backward_chaining(meta, bh):
+def backward_chaining(goal, bh):
     global cc_list
     global n_list
-    global meta_list
+    global goal_list
     global bh_list
     global r_list
     
     basic_knowledge = get_bc()
-    verificado = False
-    if meta in bh:
+    verified = False
+    if goal in bh:
         return True
     else:
-        cc = equiparar(bc=basic_knowledge,meta=meta, type="back")
-        while(len(cc)>0 and verificado == False):
-            #Verificar que los antecedentes no dependan de la regla
+        cc = compare(bc=basic_knowledge,goal=goal, type="back")
+        while(len(cc)>0 and verified == False):
+            #Verificar que los antecedents no dependan de la rule
             if len(cc) > 0:
                 for i in cc[0][0]:
                     if i not in bh:
-                        comp = equiparar(bc=basic_knowledge,meta=i, type="back", padre=meta)
+                        comp = compare(bc=basic_knowledge,goal=i, type="back", padre=goal)
                         if comp == -1:
                             basic_knowledge.remove(cc[0])
                             cc.remove(cc[0])
@@ -155,49 +155,49 @@ def backward_chaining(meta, bh):
                 cc_list.append(cc.copy())
                 #Eliminamos de cc
                 cc.remove(r)
-                #Obtenemos los antecedentes
+                #Obtenemos los antecedents
                 nm = list(r[0])
                 n_list.append(r[0])
                 
-                verificado = True
-                while len(nm)>0 and verificado:
-                    meta = nm[0]
-                    meta_list.append(meta)
-                    nm.remove(meta)
-                    verificado = backward_chaining(meta,bh)
-                    if verificado:
-                        if (meta not in bh):
-                            bh += meta
-                            bh_aux = bh_list[len(bh_list)-1] + meta
+                verified = True
+                while len(nm)>0 and verified:
+                    goal = nm[0]
+                    goal_list.append(goal)
+                    nm.remove(goal)
+                    verified = backward_chaining(goal,bh)
+                    if verified:
+                        if (goal not in bh):
+                            bh += goal
+                            bh_aux = bh_list[len(bh_list)-1] + goal
                             bh_list.append(bh_aux)
             else:
                 print("Tu base de conocimiento genera recursividad")
-        return verificado
+        return verified
 
-def actualizar_posicion_label(exito):
-    if exito:
+def update_position_label(succes):
+    if succes:
         # Coordenadas para el éxito
         msgBoolean.set("EXITO")
-        msg_exito.config(bg='Green')
+        msg_succes.config(bg='Green')
         x, y = 430, 167
     else:
         # Coordenadas para el fracaso
         msgBoolean.set("FRACASO")
-        msg_exito.config(bg='OrangeRed1')
+        msg_succes.config(bg='OrangeRed1')
         x, y = 390, 167
-    msg_exito.place(x=x, y=y)
+    msg_succes.place(x=x, y=y)
 
 # Función para actualizar el Treeview con los valores de las listas globales
 def update_treeview():
     global cc_list
     global n_list
-    global meta_list
+    global goal_list
     global bh_list
     global r_list
     lens = []
     lens.append(len(cc_list))
     lens.append(len(n_list))
-    lens.append(len(meta_list))
+    lens.append(len(goal_list))
     lens.append(len(bh_list))
     lens.append(len(r_list))
     lens.sort(reverse=True)
@@ -208,7 +208,7 @@ def update_treeview():
     
     print(cc_list)
     print(n_list)
-    print(meta_list)
+    print(goal_list)
     print(r_list)
     print(bh_list)
     # Limpiar el Treeview antes de agregar nuevos elementos
@@ -219,34 +219,34 @@ def update_treeview():
     for i in range(max_range):
         cc = cc_list[i] if i < len(cc_list) else ""
         n = n_list[i] if i < len(n_list) else ""
-        meta = meta_list[i] if i < len(meta_list) else ""
+        goal = goal_list[i] if i < len(goal_list) else ""
         r = r_list[i] if i < len(r_list) else ""
         bh = bh_list[i] if i < len(bh_list) else ""
         
-        tv.insert("", END, values=(cc, n, meta, r, bh))
+        tv.insert("", END, values=(cc, n, goal, r, bh))
 
 def button_forward():
-    global meta_list
+    global goal_list
     global bh_list
-    meta = meta_entry.get()
-    base_hechos = bh_entry.get()
-    bh_list = [base_hechos]
-    meta_list.append(meta)    
-    actualizar_posicion_label(forward_chaining(meta,base_hechos))
+    goal = meta_entry.get()
+    base_facts = bh_entry.get()
+    bh_list = [base_facts]
+    goal_list.append(goal)    
+    update_position_label(forward_chaining(goal,base_facts))
     update_treeview()
     reset_lists()
     
 def button_backward():
-    global meta_list
+    global goal_list
     global bh_list
-    meta = meta_entry.get()
-    base_hechos = bh_entry.get()
-    bh_list = [base_hechos]
-    meta_list.append(meta)
-    succes = backward_chaining(meta, base_hechos)
-    actualizar_posicion_label(succes)
+    goal = meta_entry.get()
+    base_facts = bh_entry.get()
+    bh_list = [base_facts]
+    goal_list.append(goal)
+    succes = backward_chaining(goal, base_facts)
+    update_position_label(succes)
     if succes:
-        bh_aux = bh_list[len(bh_list)-1] + meta
+        bh_aux = bh_list[len(bh_list)-1] + goal
         bh_list.append(bh_aux) 
     update_treeview()
     reset_lists()
@@ -267,7 +267,7 @@ Label(root, text="INFERENCE ENGINE", font=("Helvetica", 25), bg='white smoke').p
 Label(root, text='fancydev', font=('Helvetica', 18), bg='white smoke').pack(side=BOTTOM, pady=(0,10))
 
 #Label no te permite modificar el texto de la aplicacion
-Label(root, text ="Ingresa la meta:", font = ('Derive Unicode', 18), bg ='white smoke').place(x=150,y=100)
+Label(root, text ="Ingresa la goal:", font = ('Derive Unicode', 18), bg ='white smoke').place(x=150,y=100)
 
 # Variable para Entry
 Msg = StringVar()
@@ -278,7 +278,7 @@ meta_entry = Entry(root, textvariable=Msg, width=2, font=('Derive Unicode', 18),
 meta_entry.place(x=340, y=100, width=50, height=34)
 
 #Label no te permite modificar el texto de la aplicacion
-Label(root, text ="Ingresa la base de hechos: ", font = ('Derive Unicode', 18), bg ='white smoke').place(x=405,y=100)
+Label(root, text ="Ingresa la base de facts: ", font = ('Derive Unicode', 18), bg ='white smoke').place(x=405,y=100)
 
 # Variable para Entry
 Msg2 = StringVar()
@@ -291,23 +291,23 @@ Button(root, text = 'BACKWARD', font=('Derive Unicode', 25), command=lambda:butt
 
 msgBoolean = StringVar()
 # x = 430, y = 167 Exito x = 390, y = 167 Fracaso
-msg_exito = Label(root, textvariable=msgBoolean, font = ('Derive Unicode', 30))
+msg_succes = Label(root, textvariable=msgBoolean, font = ('Derive Unicode', 30))
 #msg_fracaso = Label(root, textvariable=msgBoolean, font = ('Derive Unicode', 30), bg ='white smoke').place(x=430, y=167)
 
 
-tv = ttk.Treeview(root, columns=("cc", "n", "meta", "r", "bh"))
+tv = ttk.Treeview(root, columns=("cc", "n", "goal", "r", "bh"))
 
 tv.column("#0", width=0, stretch=NO)  # Ocultar columna #0
 tv.column("cc", width=180)
 tv.column("n", width=180)
-tv.column("meta", width=180)
+tv.column("goal", width=180)
 tv.column("r", width=180)
 tv.column("bh", width=180)
 
 tv.heading("#0", text="", anchor=CENTER)  # Encabezado vacío para la columna #0
 tv.heading("cc", text="CC", anchor=CENTER)
 tv.heading("n", text="N(H/M)", anchor=CENTER)
-tv.heading("meta", text="META", anchor=CENTER)
+tv.heading("goal", text="META", anchor=CENTER)
 tv.heading("r", text="R", anchor=CENTER)
 tv.heading("bh", text="BH", anchor=CENTER)
 
