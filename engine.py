@@ -51,8 +51,6 @@ def get_bc():
             consecuent = parts[1]
             bc_aux = [antecedents,consecuent]
             bc.append(bc_aux)
-            #print(line)
-    #print(bc)
     return bc
 
 #[['abc','d'],]
@@ -94,8 +92,6 @@ def forward_chaining(goal, initial_facts):
     basic_knowledge = get_bc()
     bh = initial_facts
     cc = compare(basic_knowledge,bh)
-    print("------")
-    print(cc)
     cc_list.append(cc.copy())
     while len(cc)>0 and goal not in bh:
         r = cc[0]
@@ -104,25 +100,20 @@ def forward_chaining(goal, initial_facts):
         cc.remove(r)
         #Eliminamos de basic knowledge para no seguir obteniendo esa rule
         basic_knowledge.remove(r)
-        
         nh = r[1]
         n_list.append(nh)
-        
         #Actualizar bh
         if (nh not in bh):
             bh += nh
             bh_list.append(bh)
-        #
         if goal not in bh:
             cc = compare(basic_knowledge,bh)
             cc_list.append(cc.copy())
         
     if goal in bh:
-        print(bh)
         print("Exito")
         return True
     else:
-        print(bh)
         print("Fracaso")
         return False
         
@@ -177,14 +168,14 @@ def backward_chaining(goal, bh):
 def update_position_label(succes):
     if succes:
         # Coordenadas para el éxito
-        msgBoolean.set("EXITO")
+        msgBoolean.set("SUCCES")
         msg_succes.config(bg='Green')
-        x, y = 430, 167
+        x, y = 405, 167
     else:
         # Coordenadas para el fracaso
-        msgBoolean.set("FRACASO")
+        msgBoolean.set("FAILURE")
         msg_succes.config(bg='OrangeRed1')
-        x, y = 390, 167
+        x, y = 405, 167
     msg_succes.place(x=x, y=y)
 
 # Función para actualizar el Treeview con los valores de las listas globales
@@ -205,12 +196,7 @@ def update_treeview():
 
     cc_list = prepare_lists(cc_list)
     r_list = prepare_lists(r_list,"r")
-    
-    print(cc_list)
-    print(n_list)
-    print(goal_list)
-    print(r_list)
-    print(bh_list)
+
     # Limpiar el Treeview antes de agregar nuevos elementos
     for item in tv.get_children():
         tv.delete(item)
@@ -267,7 +253,7 @@ Label(root, text="INFERENCE ENGINE", font=("Helvetica", 25), bg='white smoke').p
 Label(root, text='fancydev', font=('Helvetica', 18), bg='white smoke').pack(side=BOTTOM, pady=(0,10))
 
 #Label no te permite modificar el texto de la aplicacion
-Label(root, text ="Ingresa la goal:", font = ('Derive Unicode', 18), bg ='white smoke').place(x=150,y=100)
+Label(root, text ="Enter the goal: ", font = ('Derive Unicode', 18), bg ='white smoke').place(x=150,y=100)
 
 # Variable para Entry
 Msg = StringVar()
@@ -278,7 +264,7 @@ meta_entry = Entry(root, textvariable=Msg, width=2, font=('Derive Unicode', 18),
 meta_entry.place(x=340, y=100, width=50, height=34)
 
 #Label no te permite modificar el texto de la aplicacion
-Label(root, text ="Ingresa la base de facts: ", font = ('Derive Unicode', 18), bg ='white smoke').place(x=405,y=100)
+Label(root, text ="Enter the fact base: ", font = ('Derive Unicode', 18), bg ='white smoke').place(x=475,y=100)
 
 # Variable para Entry
 Msg2 = StringVar()
@@ -297,22 +283,19 @@ msg_succes = Label(root, textvariable=msgBoolean, font = ('Derive Unicode', 30))
 
 tv = ttk.Treeview(root, columns=("cc", "n", "goal", "r", "bh"))
 
-tv.column("#0", width=0, stretch=NO)  # Ocultar columna #0
+tv.column("#0", width=0, stretch=NO) 
 tv.column("cc", width=180)
 tv.column("n", width=180)
 tv.column("goal", width=180)
 tv.column("r", width=180)
 tv.column("bh", width=180)
 
-tv.heading("#0", text="", anchor=CENTER)  # Encabezado vacío para la columna #0
+tv.heading("#0", text="", anchor=CENTER) 
 tv.heading("cc", text="CC", anchor=CENTER)
 tv.heading("n", text="N(H/M)", anchor=CENTER)
 tv.heading("goal", text="META", anchor=CENTER)
 tv.heading("r", text="R", anchor=CENTER)
 tv.heading("bh", text="BH", anchor=CENTER)
-
-# Empaquetar el Treeview
-tv.pack(pady=200)
 
 # Empaquetar el Treeview
 tv.pack(pady=200)
