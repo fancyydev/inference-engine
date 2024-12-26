@@ -247,6 +247,7 @@ def validate_input(action, value_if_allowed, text, value_before, text_after, fla
 root = Tk()
 root.geometry("1000x650")
 root.configure(bg="Black")
+root.resizable(False, False)
 root.title("INFERENCE ENGINE")
 
 Label(root, text="INFERENCE ENGINE", font=("Helvetica", 25), bg='white smoke').pack(pady=(10,0))
