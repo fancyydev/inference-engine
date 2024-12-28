@@ -98,7 +98,7 @@ def forward_chaining(goal, initial_facts):
         r_list.append(r)
         #Eliminamos de cc
         cc.remove(r)
-        #Eliminamos de basic knowledge para no seguir obteniendo esa rule
+        #Eliminamos de basic knowledge para no seguir obteniendo esa regla
         basic_knowledge.remove(r)
         nh = r[1]
         n_list.append(nh)
@@ -131,11 +131,11 @@ def backward_chaining(goal, bh):
     else:
         cc = compare(bc=basic_knowledge,goal=goal, type="back")
         while(len(cc)>0 and verified == False):
-            #Verificar que los antecedents no dependan de la rule
+            
             if len(cc) > 0:
                 for i in cc[0][0]:
                     if i not in bh:
-                        comp = compare(bc=basic_knowledge,goal=i, type="back", padre=goal)
+                        comp = compare(bc=basic_knowledge, goal=i, type="back", padre=goal)
                         if comp == -1:
                             basic_knowledge.remove(cc[0])
                             cc.remove(cc[0])
@@ -247,6 +247,7 @@ def validate_input(action, value_if_allowed, text, value_before, text_after, fla
 root = Tk()
 root.geometry("1000x650")
 root.configure(bg="Black")
+root.resizable(False, False)
 root.title("INFERENCE ENGINE")
 
 Label(root, text="INFERENCE ENGINE", font=("Helvetica", 25), bg='white smoke').pack(pady=(10,0))
