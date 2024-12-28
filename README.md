@@ -14,7 +14,7 @@ For this program, you don't need to create a virtual environment because the onl
 git clone https://github.com/fancyydev/inference-engine.git
 ```
 ## Running the program
-To run and test the game using the terminal:
+To run and test the inference engine using the terminal, navigate to the project directory and execute:
 ```
 python .\engine.py
 ```
